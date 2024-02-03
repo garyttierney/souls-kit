@@ -4,7 +4,7 @@ use std::ops::Range;
 use std::{fs::File, path::Path};
 
 use crate::reader::VfsEntryReader;
-use memmap2::{Mmap, MmapOptions};
+use memmap2::{Advice, Mmap, MmapOptions};
 use souls_formats::Bhd;
 
 mod key_provider;
@@ -89,13 +89,13 @@ impl Vfs {
     pub fn open<N: Into<Name>>(&self, name: N) -> Result<VfsEntryReader, Error> {
         match self.entries.get(&name.into()) {
             Some(entry) => {
+                let mmap = &self.archives[entry.archive];
                 let offset = entry.file_offset as usize;
+                let size = entry.file_size_with_padding as usize;
 
-                Ok(VfsEntryReader::new(
-                    &self.archives[entry.archive]
-                        [offset..offset + entry.file_size_with_padding as usize],
-                    entry,
-                ))
+                mmap.advise_range(Advice::Sequential, offset, size)?;
+
+                Ok(VfsEntryReader::new(&mmap[offset..offset + size], entry))
             }
             None => Err(Error::other("file not found")),
         }

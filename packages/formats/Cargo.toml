@@ -1,0 +1,20 @@
+[package]
+name = "souls_formats"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies.openssl]
+version = "0.10"
+features = ["vendored"]
+
+[dependencies.openssl-sys]
+version = "0.9"
+
+[dependencies.rayon]
+version = "1"
+
+[dependencies.byteorder]
+version = "1"
+
+[dependencies.flate2]
+version = "1"

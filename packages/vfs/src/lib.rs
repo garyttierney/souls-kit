@@ -90,7 +90,7 @@ impl Vfs {
         match self.entries.get(&name.into()) {
             Some(entry) => {
                 let offset = entry.file_offset as usize;
-                println!("{:#?}", entry);
+
                 Ok(VfsEntryReader::new(
                     &self.archives[entry.archive]
                         [offset..offset + entry.file_size_with_padding as usize],

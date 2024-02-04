@@ -31,23 +31,23 @@ impl DcxBuilder {
         writer.write_all(b"DCX\0")?;
         writer.write_u32::<BigEndian>(self.version)?;
 
-        let mut sizes_offset = writer.write_unresolved_u32::<BigEndian>()?;
-        let mut params_offset = writer.write_unresolved_u32::<BigEndian>()?;
-        let mut chunk_info_offset = writer.write_unresolved_u32::<BigEndian>()?;
-        let mut data_offset = writer.write_unresolved_u32::<BigEndian>()?;
+        let mut sizes_offset = writer.reserve_u32::<BigEndian>()?;
+        let mut params_offset = writer.reserve_u32::<BigEndian>()?;
+        let mut chunk_info_offset = writer.reserve_u32::<BigEndian>()?;
+        let mut data_offset = writer.reserve_u32::<BigEndian>()?;
 
         // Write the data size section
         let _ = sizes_offset.resolve_with_position(&mut writer)?;
         writer.write_all(b"DCS\0")?;
-        let uncompressed_size = writer.write_unresolved_u32::<BigEndian>()?;
-        let compressed_size = writer.write_unresolved_u32::<BigEndian>()?;
+        let uncompressed_size = writer.reserve_u32::<BigEndian>()?;
+        let compressed_size = writer.reserve_u32::<BigEndian>()?;
 
         // Write the compression parameters section
         let params_offset = params_offset.resolve_with_position(&mut writer)?;
         writer.write_all(b"DCP\0")?;
         writer.write_all(compression_params.id())?;
 
-        let mut compression_params_len = writer.write_unresolved_u32::<BigEndian>()?;
+        let mut compression_params_len = writer.reserve_u32::<BigEndian>()?;
         match compression_params {
             CompressionParameters::Deflate { compression_level } => {
                 writer.write_all(&[compression_level, 0, 0, 0])?;
@@ -63,7 +63,7 @@ impl DcxBuilder {
         // Write the compression chunk info section
         let chunk_info_offset = chunk_info_offset.resolve_with_position(&mut writer)?;
         writer.write_all(b"DCA\0")?;
-        let mut chunk_info_len = writer.write_unresolved_u32::<BigEndian>()?;
+        let mut chunk_info_len = writer.reserve_u32::<BigEndian>()?;
         chunk_info_len.resolve_with_relative_offset(&mut writer, chunk_info_offset as u64)?;
 
         // Mark the beginning of the data section and hand the writer over to the encoder

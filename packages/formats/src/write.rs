@@ -1,3 +1,4 @@
+use std::io::Error;
 use std::{
     io::Seek,
     io::{SeekFrom, Write},
@@ -37,7 +38,7 @@ impl<T: ReservedValue, E: ByteOrder> Reserved<T, E> {
     ) -> Result<T, std::io::Error> {
         let saved_pos = match replace(&mut self.inner, Reservation::Complete) {
             Reservation::Pending(pos) => pos,
-            Reservation::Complete => panic!("already resolved"),
+            Reservation::Complete => return Err(Error::other("reservation already completed")),
         };
 
         let pos = writer.stream_position()?;
@@ -92,14 +93,13 @@ where
 }
 
 pub trait WriteFormatsExt {
-    fn write_unresolved<T: ReservedValue, E: ByteOrder>(
-        &mut self,
-    ) -> Result<Reserved<T, E>, std::io::Error>;
-    fn write_unresolved_u32<E: ByteOrder>(&mut self) -> Result<Reserved<u32, E>, std::io::Error>;
+    fn reserve<T: ReservedValue, E: ByteOrder>(&mut self)
+        -> Result<Reserved<T, E>, std::io::Error>;
+    fn reserve_u32<E: ByteOrder>(&mut self) -> Result<Reserved<u32, E>, std::io::Error>;
 }
 
 impl<W: Write + Seek> WriteFormatsExt for W {
-    fn write_unresolved<T: ReservedValue, E: ByteOrder>(
+    fn reserve<T: ReservedValue, E: ByteOrder>(
         &mut self,
     ) -> Result<Reserved<T, E>, std::io::Error> {
         let offset = self.stream_position()?;
@@ -114,7 +114,7 @@ impl<W: Write + Seek> WriteFormatsExt for W {
         })
     }
 
-    fn write_unresolved_u32<E: ByteOrder>(&mut self) -> Result<Reserved<u32, E>, std::io::Error> {
-        self.write_unresolved::<u32, E>()
+    fn reserve_u32<E: ByteOrder>(&mut self) -> Result<Reserved<u32, E>, std::io::Error> {
+        self.reserve::<u32, E>()
     }
 }

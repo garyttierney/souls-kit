@@ -1,10 +1,16 @@
+use byteorder::ReadBytesExt;
 use std::io::{ErrorKind, Read};
 
 pub trait ReadFormatsExt {
+    fn read_bool(&mut self) -> std::io::Result<bool>;
     fn read_magic<const LENGTH: usize>(&mut self, expected: &[u8; LENGTH]) -> std::io::Result<()>;
 }
 
 impl<R: Read> ReadFormatsExt for R {
+    fn read_bool(&mut self) -> std::io::Result<bool> {
+        Ok(self.read_u8()? == 1)
+    }
+
     #[inline]
     fn read_magic<const LENGTH: usize>(&mut self, expected: &[u8; LENGTH]) -> std::io::Result<()> {
         let mut buffer = [0u8; LENGTH];

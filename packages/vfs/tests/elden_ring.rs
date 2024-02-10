@@ -1,6 +1,7 @@
-use std::env;
 use std::error::Error;
+use std::fs::File;
 use std::path::PathBuf;
+use std::{env, io};
 
 use souls_vfs::Vfs;
 
@@ -23,7 +24,9 @@ pub fn loads_er_archive() -> Result<(), Box<dyn Error>> {
         &keys,
     )?;
 
-    let _ = vfs.open("/action/eventnameid.txt")?;
+    let mut vfs_file = vfs.open("/action/eventnameid.txt")?;
+    let mut file = File::create("eventnameid.txt")?;
+    io::copy(&mut vfs_file, &mut file)?;
 
     Ok(())
 }

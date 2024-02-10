@@ -18,3 +18,5 @@ version = "1"
 
 [dependencies.flate2]
 version = "1"
+[dependencies]
+bitflags = "2.3.3"

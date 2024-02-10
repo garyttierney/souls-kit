@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::io::{Error, Read};
 
 use byteorder::{BigEndian, ReadBytesExt};
 use flate2::read::ZlibDecoder;
@@ -10,9 +10,7 @@ pub enum DcxDecoder<R: Read> {
     Deflate(ZlibDecoder<R>),
 }
 
-pub fn read_compression_params<R: Read>(
-    mut reader: R,
-) -> Result<CompressionParameters, std::io::Error> {
+pub fn read_compression_params<R: Read>(mut reader: R) -> Result<CompressionParameters, Error> {
     let mut algo = [0u8; 4];
     reader.read_exact(&mut algo)?;
 
@@ -29,7 +27,7 @@ pub fn read_compression_params<R: Read>(
 }
 
 impl<R: Read> DcxDecoder<R> {
-    pub fn new(mut reader: R) -> Result<(DcxHeader, DcxDecoder<R>), std::io::Error> {
+    pub fn new(mut reader: R) -> Result<(DcxHeader, DcxDecoder<R>), Error> {
         reader.read_magic(b"DCX\0")?;
 
         let version = reader.read_u32::<BigEndian>()?;
